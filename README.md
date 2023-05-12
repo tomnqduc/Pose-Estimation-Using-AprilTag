@@ -10,6 +10,9 @@
 4. Change the path to the `tag_pose.yaml` file in each scripts before running in order to work.# Pose-Estimation-Using-AprilTag
 
 <h2>Dependencies</h2>
+
 This package require the `apriltag_ros` package which can be build from [here](https://github.com/AprilRobotics/apriltag_ros)
 
 <h2>Nodes</h2>
+
+`pose_estimate.py` publish the initial pose via the topic `/initialpose`
