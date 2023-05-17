@@ -17,4 +17,20 @@
 
 <h2>Nodes</h2>
 
-`pose_estimate.py` publish the initial pose via the topic `/initialpose`
+- `pose_estimate.py` and `pose_estimate`(C++ node) publish the initial pose via the topic `/initialpose` and get subscibed by AMCL algorithm.
+- `set_goal.py` publish to the topic `/move_base_simple/goal` which usually published by click and drag on RViz.
+
+<h2> Workflow and Setup </h2>
+<p>
+    <img src="https://github.com/tomnqduc/Pose-Estimation-Using-AprilTag/assets/86122117/d18d9386-c35a-4e90-bdbb-25d138ea9515" />
+    <img src="https://github.com/tomnqduc/Pose-Estimation-Using-AprilTag/assets/86122117/0d3430d8-07aa-43bb-b523-a08a1911d7a5" />
+</p>
+
+<h2>Demo result</h2>
+
+The robot intitially have no clue about its position on the map, but it can see the tag. The tag will act as a hint for the robot to relocalize and set its initial pose for the AMCL algorithm.
+
+https://github.com/tomnqduc/Pose-Estimation-Using-AprilTag/assets/86122117/036f9ce0-acff-48a9-aaaa-6be95a6dc307
+
+
+![]
