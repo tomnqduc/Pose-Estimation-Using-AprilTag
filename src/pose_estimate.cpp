@@ -110,66 +110,70 @@ void callback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg) {
 
         try {
             YAML::Node data = get_tag_pose();
+            if (data[tag_seen]){
+                Eigen::Quaternionf rot2;
+                Eigen::Vector3f trans2;
+                Eigen::Matrix4f tf_tag_to_map;
 
-            Eigen::Quaternionf rot2;
-            Eigen::Vector3f trans2;
-            Eigen::Matrix4f tf_tag_to_map;
+                trans2.x() = data[tag_seen]["x"].as<float>();
+                trans2.y() = data[tag_seen]["y"].as<float>();
+                trans2.z() = data[tag_seen]["z"].as<float>();
 
-            trans2.x() = data[tag_seen]["x"].as<float>();
-            trans2.y() = data[tag_seen]["y"].as<float>();
-            trans2.z() = data[tag_seen]["z"].as<float>();
+                rot2.x() = data[tag_seen]["qx"].as<float>();
+                rot2.y() = data[tag_seen]["qy"].as<float>();
+                rot2.z() = data[tag_seen]["qz"].as<float>();
+                rot2.w() = data[tag_seen]["qw"].as<float>();
 
-            rot2.x() = data[tag_seen]["qx"].as<float>();
-            rot2.y() = data[tag_seen]["qy"].as<float>();
-            rot2.z() = data[tag_seen]["qz"].as<float>();
-            rot2.w() = data[tag_seen]["qw"].as<float>();
+                tf_tag_to_map = transformation_matrix(trans2, rot2);
 
-            tf_tag_to_map = transformation_matrix(trans2, rot2);
+                Eigen::Matrix4f cam_pose = tf_tag_to_map * tf_cam_to_tag;
+                Eigen::Matrix4f tf_tmp = tf_cam_to_base();
 
-            Eigen::Matrix4f cam_pose = tf_tag_to_map * tf_cam_to_tag;
-            Eigen::Matrix4f tf_tmp = tf_cam_to_base();
-
-            Eigen::Matrix4f rb_pose = (cam_pose * tf_tmp);
-    
-            tf::Matrix3x3 orientation_matrix;
-            orientation_matrix.setValue(rb_pose(0,0), rb_pose(0,1), rb_pose(0,2),
-                                        rb_pose(1,0), rb_pose(1,1), rb_pose(1,2),
-                                        rb_pose(2,0), rb_pose(2,1), rb_pose(2,2));
+                Eigen::Matrix4f rb_pose = (cam_pose * tf_tmp);
         
-            // Getting the yaw value from the rotation matrix block in the homogenous transformation matrix.
-            double roll, pitch, yaw;
-            orientation_matrix.getRPY(roll, pitch, yaw);
-
-            // Set quaternion message with only yaw value
-            tf::Quaternion orientation_quat;
-            orientation_quat.setRPY(0, 0, yaw);
+                tf::Matrix3x3 orientation_matrix;
+                orientation_matrix.setValue(rb_pose(0,0), rb_pose(0,1), rb_pose(0,2),
+                                            rb_pose(1,0), rb_pose(1,1), rb_pose(1,2),
+                                            rb_pose(2,0), rb_pose(2,1), rb_pose(2,2));
             
-            if (!published){
-                geometry_msgs::PoseWithCovarianceStamped robot_pose;
-                
-                // Set up the message
-                robot_pose.header.frame_id = "map";
-                robot_pose.pose.pose.position.x = rb_pose(0,3);
-                robot_pose.pose.pose.position.y = rb_pose(1,3);
-                robot_pose.pose.pose.orientation.w = orientation_quat.getW();
-                robot_pose.pose.pose.orientation.z = orientation_quat.getZ();
-                robot_pose.pose.covariance = {0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 
-                                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                            0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853892326654787};
+                // Getting the yaw value from the rotation matrix block in the homogenous transformation matrix.
+                double roll, pitch, yaw;
+                orientation_matrix.getRPY(roll, pitch, yaw);
 
-                pose_pub.publish(robot_pose);
-                current_tag = tag_seen;
-                published = true;
+                // Set quaternion message with only yaw value
+                tf::Quaternion orientation_quat;
+                orientation_quat.setRPY(0, 0, yaw);
+                
+                if (!published){
+                    geometry_msgs::PoseWithCovarianceStamped robot_pose;
+                    
+                    // Set up the message
+                    robot_pose.header.frame_id = "map";
+                    robot_pose.pose.pose.position.x = rb_pose(0,3);
+                    robot_pose.pose.pose.position.y = rb_pose(1,3);
+                    robot_pose.pose.pose.orientation.w = orientation_quat.getW();
+                    robot_pose.pose.pose.orientation.z = orientation_quat.getZ();
+                    robot_pose.pose.covariance = {0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 
+                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853892326654787};
+
+                    pose_pub.publish(robot_pose);
+                    current_tag = tag_seen;
+                    published = true;
+                }
+                else {
+                    ROS_INFO_ONCE("Initial pose published successfully");
+                    if (current_tag != tag_seen){
+                        published = false;
+                    }
+                }
             }
             else {
-                ROS_INFO_ONCE("Initial pose published successfully");
-                if (current_tag != tag_seen){
-                    published = false;
-                }
+                ROS_WARN_ONCE("Tag seen not found in database");
             }
         }
         catch (...) {
-            ROS_ERROR_ONCE("Error occured when reading data. Check if tag id exist in database");
+            ROS_ERROR_ONCE("Error occured when reading data.");
         }     
     }
 }
