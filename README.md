@@ -12,7 +12,8 @@
 
 <h2>Dependencies</h2>
 
-This package require the `apriltag_ros` package which can be build from [here](https://github.com/AprilRobotics/apriltag_ros)
+- This package require the `apriltag_ros` package which can be build from [here](https://github.com/AprilRobotics/apriltag_ros)
+- `Eigen` from C++ also require to build the C++ node. Installation guide can be found [here](https://eigen.tuxfamily.org/dox/GettingStarted.html)
 
 <h2>Nodes</h2>
 
