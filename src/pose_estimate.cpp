@@ -38,8 +38,6 @@ Eigen::Matrix4f tf_cam_to_base() {
     // Define the source and target frame names
     std::string sourceFrame = "base_link";
     std::string targetFrame = "camera_rgb_optical_frame";
-
-    // Loop to continuously listen for the transform
     
     while (ros::ok()) {
         try {
@@ -63,8 +61,7 @@ Eigen::Matrix4f tf_cam_to_base() {
         
             return transformation;
 
-        } catch (tf2::TransformException& ex) {
-        }
+        } catch (tf2::TransformException& ex) {}
     }
 }
 
