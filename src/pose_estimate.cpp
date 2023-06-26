@@ -9,11 +9,13 @@
 #include <yaml-cpp/yaml.h>
 #include <string>
 #include <tf/tf.h>
+#include <boost/array.hpp>
 
 // Declare global variable for the program
 bool published = false;
 std::string current_tag = "";
 ros::Publisher pose_pub;
+boost::array<double, 36> covariance;
 
 // Function to convert translation and quaternion rotation to homogenous tranformation matrix
 Eigen::Matrix4f transformation_matrix(Eigen::Vector3f trans, Eigen::Quaternionf rot){
@@ -78,6 +80,9 @@ YAML::Node get_tag_pose() {
     ROS_WARN("No tags file found");
   }
 }
+void set_covariance(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg){
+    covariance = msg->pose.covariance;
+}
 
 void callback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg) {
 
@@ -140,7 +145,6 @@ void callback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg) {
                 // Set quaternion message with only yaw value
                 tf::Quaternion orientation_quat;
                 orientation_quat.setRPY(0, 0, yaw);
-                
                 if (!published){
                     geometry_msgs::PoseWithCovarianceStamped robot_pose;
                     
@@ -150,9 +154,10 @@ void callback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg) {
                     robot_pose.pose.pose.position.y = rb_pose(1,3);
                     robot_pose.pose.pose.orientation.w = orientation_quat.getW();
                     robot_pose.pose.pose.orientation.z = orientation_quat.getZ();
-                    robot_pose.pose.covariance = {0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 
-                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                                0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853892326654787};
+                    // robot_pose.pose.covariance = {0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 
+                    //                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                    //                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853892326654787};
+                    robot_pose.pose.covariance = covariance;
 
                     pose_pub.publish(robot_pose);
                     current_tag = tag_seen;
@@ -181,7 +186,9 @@ int main(int argc, char** argv) {
     ros::init(argc, argv, "transform_listener_node");
     ros::NodeHandle nh;
     pose_pub = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/initialpose", 10);
+    ros::Subscriber covariance_sub = nh.subscribe("/amcl_pose", 1, set_covariance);
     ros::Subscriber tag_sub = nh.subscribe("/tag_detections",1 , callback);
+    
     ros::spin();
     
     return 0;

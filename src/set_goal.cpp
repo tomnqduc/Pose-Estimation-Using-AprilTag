@@ -46,12 +46,12 @@ void goal_publisher(char* tag_id[]){
 
     trans_goal.x() = 0;
     trans_goal.y() = 0;
-    trans_goal.z() = 0.75;
+    trans_goal.z() = 1;
 
     rot_goal.x() = 0;
-    rot_goal.y() = 0;
+    rot_goal.y() = 0.5;
     rot_goal.z() = 0;
-    rot_goal.w() = 1;
+    rot_goal.w() = 0;
 
     Eigen::Matrix4f tf_goal_to_tag = transformation_matrix(trans_goal, rot_goal);
 
@@ -74,12 +74,24 @@ void goal_publisher(char* tag_id[]){
 
         Eigen::Matrix4f goal = tf_tag_to_map * tf_goal_to_tag;
 
+        tf::Matrix3x3 orientation;
+        orientation.setValue(goal(0,0), goal(0,1), goal(0,2),
+                             goal(1,0), goal(1,1), goal(1,2),
+                             goal(2,0), goal(2,1), goal(2,2));
+        double roll, pitch, yaw;
+        orientation.getRPY(roll, pitch, yaw);
+
+        tf::Quaternion orientation_quat;
+        orientation_quat.setRPY(0, 0, yaw);
+
         // Declare the message
         
         goal_msg.header.frame_id = "map";
         goal_msg.pose.position.x = goal(0,3);
         goal_msg.pose.position.y = goal(1,3);
-        goal_msg.pose.orientation.w = 1;
+        goal_msg.pose.orientation.w = orientation_quat.w();
+        goal_msg.pose.orientation.z = orientation_quat.z();
+
         
         goal_pub.publish(goal_msg);        
     }
