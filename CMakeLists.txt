@@ -60,9 +60,10 @@ find_package(yaml-cpp REQUIRED)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
+#     FILES
+# #   Service1.srv
+# #   Service2.srv
+#     process_command.srv
 # )
 
 ## Generate actions in the 'action' folder
@@ -76,6 +77,7 @@ find_package(yaml-cpp REQUIRED)
 generate_messages(
   DEPENDENCIES
   std_msgs  # Or other packages containing msgs
+  geometry_msgs
 )
 
 ################################################
@@ -141,6 +143,7 @@ include_directories(${YAML_CPP_INCLUDE_DIR})
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/broadcast_tf_node.cpp)
 add_executable(pose_estimate src/pose_estimate.cpp)
+add_executable(set_goal src/set_goal.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -152,6 +155,7 @@ add_executable(pose_estimate src/pose_estimate.cpp)
 ## same as for the library above
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 add_dependencies(pose_estimate ${${pose_estimate}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(set_goal ${${set_goal}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -163,6 +167,13 @@ target_link_libraries(pose_estimate
  )
 
 target_link_libraries(pose_estimate ${YAML_CPP_LIBRARIES})
+
+target_link_libraries(set_goal
+   ${catkin_LIBRARIES}
+ )
+
+target_link_libraries(set_goal ${YAML_CPP_LIBRARIES})
+
 
 
 #############

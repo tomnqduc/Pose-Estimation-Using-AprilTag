@@ -49,9 +49,9 @@ void goal_publisher(char* tag_id[]){
     trans_goal.z() = 1;
 
     rot_goal.x() = 0;
-    rot_goal.y() = 0.5;
+    rot_goal.y() = 0.7071068;
     rot_goal.z() = 0;
-    rot_goal.w() = 0;
+    rot_goal.w() = 0.7071068;
 
     Eigen::Matrix4f tf_goal_to_tag = transformation_matrix(trans_goal, rot_goal);
 

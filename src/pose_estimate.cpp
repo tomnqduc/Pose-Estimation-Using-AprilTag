@@ -154,9 +154,6 @@ void callback(const apriltag_ros::AprilTagDetectionArray::ConstPtr& msg) {
                     robot_pose.pose.pose.position.y = rb_pose(1,3);
                     robot_pose.pose.pose.orientation.w = orientation_quat.getW();
                     robot_pose.pose.pose.orientation.z = orientation_quat.getZ();
-                    // robot_pose.pose.covariance = {0.25, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.25, 0.0, 0.0, 0.0, 0.0, 
-                    //                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                    //                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.06853892326654787};
                     robot_pose.pose.covariance = covariance;
 
                     pose_pub.publish(robot_pose);
